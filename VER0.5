@@ -1,0 +1,89 @@
+"""
+This is an example for a bot.
+"""
+from penguin_game import *
+
+
+def do_turn(game):
+    """
+    Makes the bot run a single turn.
+
+    :param game: the current game state.
+    :type game: Game
+    """
+    # Go over all of my icebergs.
+    for my_iceberg in game.get_my_icebergs():
+        
+        ##########################
+        #   DO NOTHING
+        ##########################
+        if not(underAttack(game, my_iceberg) and my_iceberg.penguin_amount < 50):
+            
+            ##########################
+            #   UPGRADE
+            ##########################
+            # If I can upgrade my iceberg and my iceberg isn't under attack -> upgrade
+            if my_iceberg.can_upgrade() and not(underAttack(game, my_iceberg)):
+                my_iceberg.upgrade()
+                
+            ##########################
+            #   ATTACK
+            ##########################    
+            else:
+                collision = 0
+                # The amount of penguins in my iceberg.
+                my_penguin_amount = my_iceberg.penguin_amount  # type: int
+        
+                if game.get_enemy_icebergs():
+                     # Target an enemy iceberg.
+                    destination = nearbyIslands(game, game.get_enemy_icebergs(), my_iceberg) # type: Iceberg
+                    collision = destination.penguins_per_turn
+                
+                # If there are any neutral icebergs.
+                if  game.get_neutral_icebergs() and (game.turn < 20 or game.max_turns - game.turn < 20):
+                #if game.get_neutral_icebergs():
+                    # Target a neutral iceberg.
+                    destination = nearbyIslands(game, game.get_neutral_icebergs(), my_iceberg)  # type: Iceberg
+                
+        
+                # The amount of penguins the target has.
+                destination_penguin_amount = destination.penguin_amount + my_iceberg.get_turns_till_arrival(destination) * destination.penguins_per_turn  # type: int
+        
+                # If my iceberg has more penguins than the target iceberg.
+                if my_penguin_amount > destination_penguin_amount:
+                    # Send penguins to the target.
+                    print my_iceberg, "sends", (destination_penguin_amount + 1), "penguins to", destination
+                    my_iceberg.send_penguins(destination, destination_penguin_amount + 1 + collision)
+
+
+#Heuristic: Sending to nearby islands
+def nearbyIslands(game, listIcebergs, my_iceberg):
+    minDistence = listIcebergs[0].get_turns_till_arrival(my_iceberg)
+    minIceberg = listIcebergs[0]
+    for iceberg in listIcebergs[1:]:
+        if(minDistence > iceberg.get_turns_till_arrival(my_iceberg)):
+            minDistence = iceberg.get_turns_till_arrival(my_iceberg)
+            minIceberg = iceberg
+    return minIceberg
+    
+#Checking if my iceberg under attack
+def underAttack(game, my_iceberg):
+    for enemy_penguin_group in game.get_enemy_penguin_groups():
+        if enemy_penguin_group.destination == my_iceberg:
+            return True
+    return False
+    
+"""            
+#Returns the amount of the opponent's penguins
+#that can collide with the attacking group
+def collision(destination):
+    #if destination.group
+    
+    return destination.penguins_per_turn"""
+    
+    
+    
+    
+    
+    
+    
